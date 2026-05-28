@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a3560" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="कार्यभार नोंद" />
+  <title>अतिरिक्त कार्यभार नोंदवही</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --primary: #1a3560;
+      --green: #1a6b3c;
+      --bg: #eef2fb;
+      --card: #ffffff;
+      --border: #d0daf0;
+      --text: #1a3560;
+      --muted: #666;
+      --light: #f8faff;
+      --accent: #eef7f2;
+      --accent-border: #b2dac5;
+    }
+    html, body { height: 100%; background: var(--bg); font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif; }
+
+    /* ── HEADER ── */
+    .app-header {
+      background: linear-gradient(135deg, #1a3560 0%, #1a6b3c 100%);
+      padding: 48px 16px 20px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .header-badge { font-size: 11px; color: #a8d8c0; margin-bottom: 4px; }
+    .header-title { font-size: 20px; font-weight: 800; color: #fff; }
+    .header-sub { font-size: 12px; color: #a8d8c0; margin-top: 2px; }
+    .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12px; gap: 8px; flex-wrap: wrap; }
+    .btn-add { background: rgba(255,255,255,0.2); color: #fff; border: 1.5px solid rgba(255,255,255,0.5); border-radius: 10px; padding: 9px 16px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .btn-backup { background: transparent; color: #a8d8c0; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+
+    /* ── STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 14px 12px; }
+    .stat-card { background: var(--card); border-radius: 12px; padding: 10px 6px; text-align: center; box-shadow: 0 2px 8px rgba(26,53,96,0.10); }
+    .stat-icon { font-size: 18px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 2px; }
+    .stat-label { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    /* ── SEARCH ── */
+    .search-wrap { padding: 0 12px 10px; }
+    .search-input { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: inherit; background: var(--card); color: var(--text); outline: none; }
+
+    /* ── CARDS LIST ── */
+    .records-list { padding: 0 12px 80px; display: flex; flex-direction: column; gap: 10px; }
+    .record-card { background: var(--card); border-radius: 14px; padding: 14px; box-shadow: 0 2px 10px rgba(26,53,96,0.08); border: 1px solid var(--border); }
+    .rc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .rc-office { font-size: 15px; font-weight: 700; color: var(--primary); flex: 1; }
+    .rc-days { background: var(--accent); border: 1px solid var(--accent-border); border-radius: 8px; padding: 3px 10px; font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; }
+    .rc-dates { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .rc-date-chip { background: var(--light); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+    .rc-docs { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+    .rc-doc-label { font-size: 12px; color: var(--muted); }
+    .rc-doc-badge { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 700; color: #856404; }
+    .rc-range { background: var(--accent); border: 1px solid var(--accent-border); border-radius: 6px; padding: 2px 10px; font-size: 12px; color: var(--green); font-weight: 600; }
+    .rc-remarks { margin-top: 8px; font-size: 12px; color: #777; border-top: 1px solid var(--border); padding-top: 8px; }
+    .rc-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+    .btn-edit { background: var(--light); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; color: var(--primary); font-weight: 600; }
+    .btn-del { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; color: #c0392b; font-weight: 600; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 50px 24px; color: var(--muted); }
+    .empty-icon { font-size: 52px; margin-bottom: 12px; }
+    .empty-title { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; color: #888; }
+
+    /* ── BOTTOM FAB ── */
+    .fab { position: fixed; bottom: 24px; right: 20px; background: linear-gradient(135deg, #1a3560, #1a6b3c); color: #fff; border: none; border-radius: 50px; padding: 15px 22px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 20px rgba(26,53,96,0.35); z-index: 50; display: flex; align-items: center; gap: 8px; }
+
+    /* ── BOTTOM SHEET (Form / Backup) ── */
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+    .sheet-overlay.open { display: block; }
+    .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 20px 20px 0 0; z-index: 201; max-height: 92vh; overflow-y: auto; padding: 0 0 30px; transform: translateY(100%); transition: transform 0.3s ease; }
+    .bottom-sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 40px; height: 4px; background: #ddd; border-radius: 4px; margin: 12px auto 0; }
+    .sheet-title { font-size: 17px; font-weight: 800; color: var(--primary); padding: 14px 20px 0; }
+    .sheet-body { padding: 14px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .field-label { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+    .field-input { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 15px; font-family: inherit; background: var(--light); color: var(--text); outline: none; }
+    .field-input:focus { border-color: var(--primary); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .calc-info { background: var(--accent); border: 1px solid var(--accent-border); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--green); font-weight: 600; display: none; }
+    .calc-info.show { display: block; }
+    .sheet-actions { display: flex; gap: 10px; padding: 0 20px; }
+    .btn-save { flex: 1; background: linear-gradient(135deg, #1a3560, #1a6b3c); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .btn-cancel { background: var(--light); color: var(--muted); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 18px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
+
+    /* ── BACKUP SHEET ── */
+    .backup-option { background: var(--light); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+    .backup-opt-icon { font-size: 28px; margin-bottom: 6px; }
+    .backup-opt-title { font-size: 15px; font-weight: 700; color: var(--primary); }
+    .backup-opt-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .btn-backup-action { width: 100%; margin-top: 10px; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .btn-green { background: linear-gradient(135deg, #1a3560, #1a6b3c); color: #fff; }
+    .btn-blue { background: #eef2fb; color: var(--primary); border: 1.5px solid var(--border) !important; }
+
+    /* ── DELETE CONFIRM ── */
+    .confirm-sheet { position: fixed; inset: 0; z-index: 300; display: none; align-items: flex-end; justify-content: center; }
+    .confirm-sheet.open { display: flex; background: rgba(0,0,0,0.5); }
+    .confirm-box { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; padding: 24px 20px 36px; }
+    .confirm-title { font-size: 18px; font-weight: 800; color: #c0392b; text-align: center; }
+    .confirm-sub { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; margin-bottom: 20px; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .btn-confirm-del { flex: 1; background: #c0392b; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .btn-confirm-cancel { flex: 1; background: var(--light); color: var(--muted); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #1a6b3c; color: #fff; border-radius: 12px; padding: 12px 22px; font-size: 14px; font-weight: 700; z-index: 400; white-space: nowrap; transition: transform 0.3s ease; font-family: inherit; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #c0392b; }
+
+    /* ── INSTALL BANNER ── */
+    .install-banner { background: linear-gradient(90deg, #1a3560, #1a6b3c); color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .install-banner button { background: #fff; color: #1a3560; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .install-banner .close-btn { background: transparent; color: rgba(255,255,255,0.7); border: none; font-size: 18px; cursor: pointer; margin-left: auto; padding: 0 4px; }
+  </style>
+</head>
+<body>
+
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner" style="display:none">
+  <span>📱 हे App Install करा — Home Screen वर येईल</span>
+  <button id="installBtn">Install</button>
+  <button class="close-btn" onclick="document.getElementById('installBanner').style.display='none'">✕</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Header -->
+<div class="app-header">
+  <div class="header-badge">महाराष्ट्र शासन • नोंदणी व मुद्रांक विभाग</div>
+  <div class="header-title">अतिरिक्त कार्यभार नोंदवही</div>
+  <div class="header-sub">सह दुय्यम निबंधक — चार्ज व्यवस्थापन</div>
+  <div class="header-row">
+    <div id="headerCount" style="color:#a8d8c0;font-size:13px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-backup" onclick="openBackup()">📦 Backup</button>
+      <button class="btn-add" onclick="openAddForm()">+ नवीन नोंद</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row" id="statsRow" style="display:none">
+  <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="s1">0</div><div class="stat-label">चार्ज</div></div>
+  <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val" id="s2">0</div><div class="stat-label">दिवस</div></div>
+  <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-val" id="s3">0</div><div class="stat-label">दस्त</div></div>
+  <div class="stat-card"><div class="stat-icon">🏛</div><div class="stat-val" id="s4">0</div><div class="stat-label">कार्यालये</div></div>
+</div>
+
+<!-- Search -->
+<div class="search-wrap" id="searchWrap" style="display:none">
+  <input class="search-input" type="text" id="searchInput" placeholder="🔍 कार्यालयानुसार शोधा..." oninput="renderList()" />
+</div>
+
+<!-- Records -->
+<div class="records-list" id="recordsList"></div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddForm()">+ नवीन नोंद</button>
+
+<!-- Form Sheet -->
+<div class="sheet-overlay" id="formOverlay" onclick="closeForm()"></div>
+<div class="bottom-sheet" id="formSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="formTitle">📝 नवीन नोंद</div>
+  <div class="sheet-body">
+    <div>
+      <div class="field-label">कार्यालयाचे नाव *</div>
+      <select class="field-input" id="fOffice">
+        <option value="">-- निवडा --</option>
+        <option>सह दुय्यम निबंधक, सांगली</option>
+        <option>सह दुय्यम निबंधक, मिरज</option>
+        <option>सह दुय्यम निबंधक, कुपवाड</option>
+        <option>सह दुय्यम निबंधक, वाळवा</option>
+        <option>सह दुय्यम निबंधक, इस्लामपूर</option>
+        <option>सह दुय्यम निबंधक, शिराळा</option>
+        <option>सह दुय्यम निबंधक, तासगाव</option>
+        <option>सह दुय्यम निबंधक, खानापूर</option>
+        <option>सह दुय्यम निबंधक, आटपाडी</option>
+        <option>सह दुय्यम निबंधक, कवठेमहांकाळ</option>
+        <option>सह दुय्यम निबंधक, जत</option>
+        <option>सह दुय्यम निबंधक, पलूस</option>
+        <option>सह दुय्यम निबंधक, कडेगाव</option>
+        <option>इतर</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div>
+        <div class="field-label">चार्ज प्रारंभ दिनांक *</div>
+        <input class="field-input" type="date" id="fFrom" onchange="updateCalc()" />
+      </div>
+      <div>
+        <div class="field-label">चार्ज समाप्त दिनांक</div>
+        <input class="field-input" type="date" id="fTo" onchange="updateCalc()" />
+      </div>
+    </div>
+    <div class="calc-info" id="calcInfo"></div>
+    <div>
+      <div class="field-label">एकूण नोंदविलेले दस्त</div>
+      <input class="field-input" type="number" id="fDocs" placeholder="उदा. 45" />
+    </div>
+    <div class="row2">
+      <div>
+        <div class="field-label">दस्तक क्र. (पासून)</div>
+        <input class="field-input" type="number" id="fFrom2" placeholder="उदा. 1201" oninput="updateCalc()" />
+      </div>
+      <div>
+        <div class="field-label">दस्तक क्र. (पर्यंत)</div>
+        <input class="field-input" type="number" id="fTo2" placeholder="उदा. 1245" oninput="updateCalc()" />
+      </div>
+    </div>
+    <div>
+      <div class="field-label">शेरा / नोंद</div>
+      <textarea class="field-input" id="fRemarks" placeholder="आवश्यक माहिती..." rows="2" style="resize:vertical"></textarea>
+    </div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-save" id="saveBtn" onclick="saveRecord()">✓ जतन करा</button>
+    <button class="btn-cancel" onclick="closeForm()">रद्द</button>
+  </div>
+</div>
+
+<!-- Backup Sheet -->
+<div class="sheet-overlay" id="backupOverlay" onclick="closeBackup()"></div>
+<div class="bottom-sheet" id="backupSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">📦 Backup & Restore</div>
+  <div class="sheet-body">
+    <div class="backup-option">
+      <div class="backup-opt-icon">⬇️</div>
+      <div class="backup-opt-title">Backup डाउनलोड करा</div>
+      <div class="backup-opt-sub">सर्व नोंदी JSON फाईल म्हणून फोनमध्ये save होतील. हरवणार नाहीत.</div>
+      <button class="btn-backup-action btn-green" onclick="downloadBackup()">डाउनलोड करा</button>
+    </div>
+    <div class="backup-option">
+      <div class="backup-opt-icon">⬆️</div>
+      <div class="backup-opt-title">Backup Restore करा</div>
+      <div class="backup-opt-sub">आधी डाउनलोड केलेली JSON फाईल निवडा — नोंदी परत येतील.</div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)" />
+      <button class="btn-backup-action btn-blue" onclick="document.getElementById('importFile').click()">📂 फाईल निवडा</button>
+    </div>
+    <div class="backup-option">
+      <div class="backup-opt-icon">📊</div>
+      <div class="backup-opt-title">Excel डाउनलोड करा</div>
+      <div class="backup-opt-sub">सर्व नोंदी Excel फाईलमध्ये export होतील.</div>
+      <button class="btn-backup-action btn-blue" onclick="exportExcel()">Excel डाउनलोड</button>
+    </div>
+    <button class="btn-cancel" style="width:100%;padding:13px" onclick="closeBackup()">बंद करा</button>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="confirm-sheet" id="confirmSheet">
+  <div class="confirm-box">
+    <div class="confirm-title">🗑 नोंद हटवायची आहे का?</div>
+    <div class="confirm-sub">ही क्रिया परत घेता येणार नाही.</div>
+    <div class="confirm-btns">
+      <button class="btn-confirm-del" onclick="confirmDelete()">हो, हटवा</button>
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">रद्द करा</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const LS_KEY = "sdr_charge_app_v1";
+let records = [];
+let editId = null;
+let deleteId = null;
+
+function load() {
+  try {
+    const d = localStorage.getItem(LS_KEY);
+    if (d) records = JSON.parse(d);
+  } catch {}
+  renderAll();
+}
+
+function save() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch {}
+}
+
+// ── UTILS ──
+function daysBetween(from, to) {
+  if (!from || !to) return null;
+  const d = Math.ceil((new Date(to) - new Date(from)) / 86400000) + 1;
+  return d > 0 ? d : null;
+}
+function fmtDate(d) {
+  if (!d) return "-";
+  const [y,m,day] = d.split("-");
+  return `${day}/${m}/${y}`;
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type="success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (type==="error"?" error":"");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = "toast", 2800);
+}
+
+// ── RENDER ──
+function renderAll() {
+  renderStats();
+  renderList();
+}
+
+function renderStats() {
+  const n = records.length;
+  document.getElementById("statsRow").style.display = n > 0 ? "grid" : "none";
+  document.getElementById("searchWrap").style.display = n > 0 ? "block" : "none";
+  document.getElementById("headerCount").textContent = n > 0 ? `${n} नोंदी` : "";
+  if (n === 0) return;
+  const totalDays = records.reduce((a,r) => { const d=daysBetween(r.from,r.to); return a+(d||0); }, 0);
+  const totalDocs = records.reduce((a,r) => a+(parseInt(r.docs)||0), 0);
+  const offices = new Set(records.map(r=>r.office)).size;
+  document.getElementById("s1").textContent = n;
+  document.getElementById("s2").textContent = totalDays;
+  document.getElementById("s3").textContent = totalDocs;
+  document.getElementById("s4").textContent = offices;
+}
+
+function renderList() {
+  const q = (document.getElementById("searchInput")?.value||"").toLowerCase();
+  const filtered = q ? records.filter(r => (r.office||"").toLowerCase().includes(q)||(r.remarks||"").toLowerCase().includes(q)) : records;
+  const el = document.getElementById("recordsList");
+
+  if (records.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">कोणतीही नोंद नाही</div>
+      <div class="empty-sub">"+ नवीन नोंद" दाबून सुरुवात करा</div>
+      <div style="margin-top:16px">
+        <div style="font-size:12px;color:#aaa;margin-bottom:8px">जुना Backup असल्यास:</div>
+        <button onclick="openBackup()" style="background:linear-gradient(135deg,#1a3560,#1a6b3c);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">📦 Backup Restore करा</button>
+      </div>
+    </div>`;
+    return;
+  }
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-sub">शोध परिणाम नाही</div></div>`;
+    return;
+  }
+  el.innerHTML = filtered.map((r,i) => {
+    const days = daysBetween(r.from, r.to);
+    return `<div class="record-card">
+      <div class="rc-top">
+        <div class="rc-office">${r.office||"-"}</div>
+        ${days ? `<div class="rc-days">${days} दिवस</div>` : ""}
+      </div>
+      <div class="rc-dates">
+        <div class="rc-date-chip">▶ ${fmtDate(r.from)}</div>
+        ${r.to ? `<div class="rc-date-chip">⏹ ${fmtDate(r.to)}</div>` : ""}
+      </div>
+      <div class="rc-docs">
+        ${r.docs ? `<div class="rc-doc-label">दस्त:</div><div class="rc-doc-badge">${r.docs}</div>` : ""}
+        ${r.docFrom&&r.docTo ? `<div class="rc-range">${r.docFrom} – ${r.docTo}</div>` : ""}
+      </div>
+      ${r.remarks ? `<div class="rc-remarks">📝 ${r.remarks}</div>` : ""}
+      <div class="rc-actions">
+        <button class="btn-edit" onclick="openEdit('${r.id}')">✏️ संपादित</button>
+        <button class="btn-del" onclick="askDelete('${r.id}')">🗑 हटवा</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── FORM ──
+function openAddForm() {
+  editId = null;
+  document.getElementById("formTitle").textContent = "📝 नवीन नोंद";
+  document.getElementById("saveBtn").textContent = "✓ जतन करा";
+  document.getElementById("fOffice").value = "";
+  document.getElementById("fFrom").value = "";
+  document.getElementById("fTo").value = "";
+  document.getElementById("fDocs").value = "";
+  document.getElementById("fFrom2").value = "";
+  document.getElementById("fTo2").value = "";
+  document.getElementById("fRemarks").value = "";
+  document.getElementById("calcInfo").className = "calc-info";
+  openSheet("formSheet","formOverlay");
+}
+
+function openEdit(id) {
+  const r = records.find(x => x.id == id);
+  if (!r) return;
+  editId = id;
+  document.getElementById("formTitle").textContent = "✏️ नोंद संपादित करा";
+  document.getElementById("saveBtn").textContent = "✓ अद्यावत करा";
+  document.getElementById("fOffice").value = r.office||"";
+  document.getElementById("fFrom").value = r.from||"";
+  document.getElementById("fTo").value = r.to||"";
+  document.getElementById("fDocs").value = r.docs||"";
+  document.getElementById("fFrom2").value = r.docFrom||"";
+  document.getElementById("fTo2").value = r.docTo||"";
+  document.getElementById("fRemarks").value = r.remarks||"";
+  updateCalc();
+  openSheet("formSheet","formOverlay");
+}
+
+function closeForm() { closeSheet("formSheet","formOverlay"); }
+
+function updateCalc() {
+  const from = document.getElementById("fFrom").value;
+  const to = document.getElementById("fTo").value;
+  const df = document.getElementById("fFrom2").value;
+  const dt = document.getElementById("fTo2").value;
+  const el = document.getElementById("calcInfo");
+  const days = daysBetween(from, to);
+  if (days) {
+    let txt = `📅 एकूण कालावधी: ${days} दिवस`;
+    if (df && dt && parseInt(dt)>=parseInt(df)) txt += ` &nbsp;|&nbsp; 📄 दस्त: ${parseInt(dt)-parseInt(df)+1}`;
+    el.innerHTML = txt;
+    el.className = "calc-info show";
+  } else {
+    el.className = "calc-info";
+  }
+}
+
+function saveRecord() {
+  const office = document.getElementById("fOffice").value;
+  const from = document.getElementById("fFrom").value;
+  if (!office || !from) { showToast("कार्यालय आणि प्रारंभ दिनांक आवश्यक आहे", "error"); return; }
+  const rec = {
+    id: editId || Date.now().toString(),
+    office, from,
+    to: document.getElementById("fTo").value,
+    docs: document.getElementById("fDocs").value,
+    docFrom: document.getElementById("fFrom2").value,
+    docTo: document.getElementById("fTo2").value,
+    remarks: document.getElementById("fRemarks").value,
+  };
+  if (editId) {
+    records = records.map(r => r.id == editId ? rec : r);
+    showToast("✓ नोंद अद्यावत झाली");
+  } else {
+    records.push(rec);
+    showToast("✓ नोंद जतन झाली");
+  }
+  save(); renderAll(); closeForm();
+}
+
+// ── DELETE ──
+function askDelete(id) { deleteId = id; document.getElementById("confirmSheet").className = "confirm-sheet open"; }
+function closeConfirm() { document.getElementById("confirmSheet").className = "confirm-sheet"; }
+function confirmDelete() {
+  records = records.filter(r => r.id != deleteId);
+  save(); renderAll(); closeConfirm();
+  showToast("नोंद हटविली", "error");
+}
+
+// ── BACKUP ──
+function openBackup() { openSheet("backupSheet","backupOverlay"); }
+function closeBackup() { closeSheet("backupSheet","backupOverlay"); }
+
+function downloadBackup() {
+  if (records.length === 0) { showToast("नोंदी नाहीत", "error"); return; }
+  const data = JSON.stringify({ version:1, date: new Date().toISOString(), records }, null, 2);
+  const blob = new Blob([data], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const d = new Date().toLocaleDateString("en-IN").replace(/\//g,"-");
+  a.download = `कार्यभार_backup_${d}.json`;
+  a.click();
+  showToast("✓ Backup फाईल डाउनलोड झाली");
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      let imported = JSON.parse(ev.target.result);
+      if (imported.records) imported = imported.records;
+      if (!Array.isArray(imported)) { showToast("फाईल योग्य नाही", "error"); return; }
+      const existIds = new Set(records.map(r=>r.id));
+      const newOnes = imported.filter(r => !existIds.has(r.id));
+      records = [...records, ...newOnes].sort((a,b)=>a.id-b.id);
+      save(); renderAll();
+      showToast(`✓ ${newOnes.length} नोंदी restore झाल्या`);
+      closeBackup();
+    } catch { showToast("फाईल वाचता आली नाही","error"); }
+  };
+  reader.readAsText(file);
+  e.target.value="";
+}
+
+function exportExcel() {
+  if (records.length === 0) { showToast("नोंदी नाहीत","error"); return; }
+  let csv = "\uFEFFअ.क्र.,कार्यालयाचे नाव,चार्ज प्रारंभ,चार्ज समाप्त,एकूण दिवस,एकूण दस्त,दस्तक (पासून),दस्तक (पर्यंत),शेरा\n";
+  records.forEach((r,i) => {
+    const days = daysBetween(r.from,r.to)||"";
+    csv += `${i+1},"${r.office||""}",${fmtDate(r.from)},${fmtDate(r.to)},${days},${r.docs||""},${r.docFrom||""},${r.docTo||""},"${r.remarks||""}"\n`;
+  });
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download="कार्यभार_नोंद.csv"; a.click();
+  showToast("✓ Excel फाईल डाउनलोड झाली");
+}
+
+// ── SHEET HELPERS ──
+function openSheet(sheetId, overlayId) {
+  document.getElementById(overlayId).className = "sheet-overlay open";
+  document.getElementById(sheetId).className = "bottom-sheet open";
+  document.body.style.overflow = "hidden";
+}
+function closeSheet(sheetId, overlayId) {
+  document.getElementById(overlayId).className = "sheet-overlay";
+  document.getElementById(sheetId).className = "bottom-sheet";
+  document.body.style.overflow = "";
+}
+
+// ── PWA INSTALL ──
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("installBanner").style.display = "flex";
+});
+document.getElementById("installBtn")?.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") showToast("✓ App Install झाले!");
+  deferredPrompt = null;
+  document.getElementById("installBanner").style.display = "none";
+});
+
+// ── SERVICE WORKER ──
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+load();
+</script>
+</body>
+</html>
